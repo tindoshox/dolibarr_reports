@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6-5c96b6aa8a39ac1dc6b6bea4b81168e16dd39231  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="receipts" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="aec009e1-8204-4964-b91b-18e5bacac232">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Postgres"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="170"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="823"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<style name="Style1">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{duedays}.compareTo( (0))>=0 && $F{balance}.compareTo( new BigDecimal(0))!=0]]></conditionExpression>
+			<style forecolor="#FF3333"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="FROM_DATE" class="java.util.Date" nestedType="">
+		<defaultValueExpression><![CDATA[TODAY( )]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TO_DATE" class="java.util.Date">
+		<defaultValueExpression><![CDATA[TODAY( )]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SALESPERSON" class="java.lang.Integer"/>
+	<parameter name="GROUP" class="java.lang.Integer"/>
+	<queryString language="plsql">
+		<![CDATA[
+with i as (with x as(
+select
+	fk_facture_source,
+	sum(total_ttc) cr_tot
+from
+	llx_facture
+group by
+	fk_facture_source)
+-------
+ select
+	f.rowid inv_id,
+	round(f.total_ttc + coalesce(x.cr_tot, 0)) - sum(coalesce(round(pf.amount), 0)) as balance
+from
+	llx_facture f
+left join llx_societe s on
+	f.fk_soc = s.rowid
+left join llx_paiement_facture as pf on
+	f.rowid = pf.fk_facture
+left join llx_paiement as "p" on
+	pf.fk_paiement = p.rowid
+left join llx_facturedet as fd on
+	f.rowid = fd.fk_facture
+left join llx_product as pr on
+	fd.fk_product = pr.rowid
+left join x on
+	f.rowid = x.fk_facture_source
+group by
+	f.rowid,
+	x.cr_tot)
+--2222222222
+select
+date(p.datep) tdate,
+i.balance,
+s.nom,
+f."ref",
+date(f.date_lim_reglement) duedate,
+s.address,
+s.town,
+coalesce(b.num_chq,p.num_paiement) docref,
+pf.amount famount,
+u.firstname,
+p.datec,
+date(now())-date(f.date_lim_reglement) as duedays
+from
+llx_facture f
+join llx_paiement_facture pf on pf.fk_facture = f.rowid 
+join llx_paiement p on p.rowid  = pf.fk_paiement 
+join llx_user u on p.fk_user_creat = u.rowid  
+join llx_societe s on s.rowid = f.fk_soc
+join llx_bank b on b.rowid = p.fk_bank 
+join i on i.inv_id = f.rowid 
+
+
+where date(p.datep) between $P{FROM_DATE} and $P{TO_DATE}
+and   (s.fk_departement = $P{GROUP} or $P{GROUP} is null) 
+and   (p.fk_user_creat = $P{SALESPERSON} or $P{SALESPERSON} is null) 
+
+
+order by
+p.datec desc,
+p.num_paiement desc]]>
+	</queryString>
+	<field name="tdate" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="tdate"/>
+		<property name="com.jaspersoft.studio.field.label" value="tdate"/>
+	</field>
+	<field name="balance" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="balance"/>
+		<property name="com.jaspersoft.studio.field.label" value="balance"/>
+	</field>
+	<field name="nom" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nom"/>
+		<property name="com.jaspersoft.studio.field.label" value="nom"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="ref" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ref"/>
+		<property name="com.jaspersoft.studio.field.label" value="ref"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="duedate" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="duedate"/>
+		<property name="com.jaspersoft.studio.field.label" value="duedate"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="address" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address"/>
+		<property name="com.jaspersoft.studio.field.label" value="address"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="town" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="town"/>
+		<property name="com.jaspersoft.studio.field.label" value="town"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="docref" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="docref"/>
+		<property name="com.jaspersoft.studio.field.label" value="docref"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_paiement"/>
+	</field>
+	<field name="famount" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="famount"/>
+		<property name="com.jaspersoft.studio.field.label" value="famount"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_paiement_facture"/>
+	</field>
+	<field name="firstname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="firstname"/>
+		<property name="com.jaspersoft.studio.field.label" value="firstname"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_user"/>
+	</field>
+	<field name="datec" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="datec"/>
+		<property name="com.jaspersoft.studio.field.label" value="datec"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_paiement"/>
+	</field>
+	<field name="duedays" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="duedays"/>
+		<property name="com.jaspersoft.studio.field.label" value="duedays"/>
+	</field>
+	<variable name="v_GrandTotal" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{famount}]]></variableExpression>
+	</variable>
+	<variable name="v_SubTotal" class="java.math.BigDecimal" resetType="Group" resetGroup="Group2" calculation="Sum">
+		<variableExpression><![CDATA[$F{famount}]]></variableExpression>
+	</variable>
+	<variable name="famount1" class="java.math.BigDecimal" resetType="Page" calculation="Sum">
+		<variableExpression><![CDATA[$F{famount}]]></variableExpression>
+	</variable>
+	<group name="Group1">
+		<groupExpression><![CDATA[$F{famount}]]></groupExpression>
+	</group>
+	<group name="Group2">
+		<groupExpression><![CDATA[$F{firstname}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="37" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="2" width="550" height="30" uuid="caa55d8b-094f-47cf-be93-b17579645b02"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Receipts for: " +new SimpleDateFormat("dd-MM-yyyy").format($P{FROM_DATE})+" to "+new SimpleDateFormat("dd-MM-yyyy").format($P{TO_DATE})]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" pattern="#,##0">
+				<reportElement x="550" y="0" width="89" height="30" uuid="e8ead1a8-c994-4cc9-9257-1099c66a6058"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{v_GrandTotal}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="17" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField pattern="dd-MM-yyyy">
+				<reportElement style="Style1" x="0" y="0" width="70" height="17" uuid="e0a058e1-a9b5-40aa-8dbf-c744fe1c6567">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0c16cc63-5f9e-465b-b5aa-9e7336aa8c83"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{tdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Style1" x="70" y="0" width="180" height="17" uuid="0c27f287-e51b-489c-a791-7476c62581ad">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="279ba267-17c5-4b29-ad31-b209bf3d81c1"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{nom}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Style1" x="330" y="0" width="120" height="17" uuid="22068d12-4349-4c50-9dc3-5da57b4e6189">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b6d7e8cf-75cb-440d-813d-d6babeb28df0"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{address}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Style1" x="450" y="0" width="80" height="17" uuid="86e1e3e3-49b7-41a2-8b53-dfbf4cbc7a65">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1293dbbf-8f90-4676-ad68-13bedbcae0c3"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{town}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Style1" x="530" y="0" width="60" height="17" uuid="927f3caa-8642-4f55-abbd-f062fa473beb">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="66059a32-2e30-4d4b-8ecd-265373290435"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{docref}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement style="Style1" x="590" y="0" width="50" height="17" uuid="fe241934-c16f-412f-9ee9-4fb4fd6170fe">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="d66044cb-1e03-464a-9f56-93da2b9e4c84"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{famount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Style1" x="640" y="0" width="60" height="17" uuid="944f20b4-e853-42e2-a4cd-2c7b3f432422"/>
+				<textFieldExpression><![CDATA[$F{firstname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yy &apos;(&apos;EE&apos;)&apos;">
+				<reportElement style="Style1" x="700" y="0" width="100" height="17" uuid="44f16eaa-daa8-469b-a668-3971da94c0f7">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="4c731198-7e19-4dd3-b04a-cda438d7cad8"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{duedate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Style1" x="251" y="1" width="78" height="16" uuid="3a5e07aa-ab25-4a8c-8746-f8f9807265dc"/>
+				<textFieldExpression><![CDATA[$F{ref}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="21">
+			<textField pattern="#,##0">
+				<reportElement x="582" y="1" width="61" height="20" uuid="797e1ef9-8144-417c-a6a2-e650fa56017d"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{famount1}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

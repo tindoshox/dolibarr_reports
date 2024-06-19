@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.21.0.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Shop Balances" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="cf58f2b2-d876-4a15-93e7-a560b1374334">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="598"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="388"/>
+	<style name="Style_Due_Date" pattern="dd-MM-yyyy &apos;(&apos;EE&apos;)&apos;">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{due_date}.before( TODAY( ) )]]></conditionExpression>
+			<style mode="Opaque" forecolor="#FF0400" backcolor="#FFFFFF" pattern="dd-MM-yyyy &apos;(&apos;EE&apos;)&apos;"/>
+		</conditionalStyle>
+	</style>
+	<subDataset name="checkpoint" uuid="5ba4aa7f-d965-45b2-bf90-f54152d1ecbf">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Local"/>
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<parameter name="ACC_ID" class="java.lang.Integer"/>
+		<queryString>
+			<![CDATA[SELECT
+  DISTINCT ac.id as ac_id,
+  ac.ref_ext as ac_ref_ext,
+  ac.datec as ac_datec,
+  ac.datep as ac_datep,
+  ac.label as ac_label,
+  ac.note as ac_note,
+  cac.libelle as cac_libelle,
+  s.rowid as s_nom
+FROM
+  llx_actioncomm as ac
+  LEFT JOIN llx_c_actioncomm as cac on ac.fk_action = cac.id
+  LEFT JOIN llx_socpeople as sp on ac.fk_contact = sp.rowid
+  LEFT JOIN llx_societe as s on ac.fk_soc = s.rowid
+  LEFT JOIN llx_c_country as co on s.fk_pays = co.rowid
+WHERE
+  ac.fk_action = 11
+  and percent < 100
+  and s.rowid = $P{ACC_ID}
+ORDER BY
+  ac.datep desc
+  limit 1]]>
+		</queryString>
+		<field name="ac_id" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.name" value="ac_id"/>
+			<property name="com.jaspersoft.studio.field.label" value="ac_id"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+		</field>
+		<field name="ac_ref_ext" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="ac_ref_ext"/>
+			<property name="com.jaspersoft.studio.field.label" value="ac_ref_ext"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+		</field>
+		<field name="ac_datec" class="java.sql.Timestamp">
+			<property name="com.jaspersoft.studio.field.name" value="ac_datec"/>
+			<property name="com.jaspersoft.studio.field.label" value="ac_datec"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+		</field>
+		<field name="ac_datep" class="java.sql.Timestamp">
+			<property name="com.jaspersoft.studio.field.name" value="ac_datep"/>
+			<property name="com.jaspersoft.studio.field.label" value="ac_datep"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+		</field>
+		<field name="ac_label" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="ac_label"/>
+			<property name="com.jaspersoft.studio.field.label" value="ac_label"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+		</field>
+		<field name="ac_note" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="ac_note"/>
+			<property name="com.jaspersoft.studio.field.label" value="ac_note"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+		</field>
+		<field name="cac_libelle" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="cac_libelle"/>
+			<property name="com.jaspersoft.studio.field.label" value="cac_libelle"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_c_actioncomm"/>
+		</field>
+		<field name="s_nom" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.name" value="s_nom"/>
+			<property name="com.jaspersoft.studio.field.label" value="s_nom"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+		</field>
+	</subDataset>
+	<subDataset name="payments" uuid="33472f66-5f44-4a7c-9506-fd566778d1d6">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Local"/>
+		<parameter name="REC_ID" class="java.lang.Integer"/>
+		<queryString language="SQL">
+			<![CDATA[SELECT 
+	f.rowid, 
+	date(pa.datep) as datep, 
+	pa.num_paiement, 
+	round(pa.amount) tot
+FROM
+	llx_facture AS f
+	INNER JOIN
+	llx_paiement_facture AS pf
+	ON 
+		f.rowid = pf.fk_facture
+	INNER JOIN
+	llx_paiement AS pa
+	ON 
+		pa.rowid = pf.fk_paiement
+where f.rowid = $P{REC_ID}
+     order by
+    pa.datep asc
+	limit 5]]>
+		</queryString>
+		<field name="rowid" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.name" value="rowid"/>
+			<property name="com.jaspersoft.studio.field.label" value="rowid"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+		</field>
+		<field name="datep" class="java.sql.Date">
+			<property name="com.jaspersoft.studio.field.name" value="datep"/>
+			<property name="com.jaspersoft.studio.field.label" value="datep"/>
+		</field>
+		<field name="num_paiement" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="num_paiement"/>
+			<property name="com.jaspersoft.studio.field.label" value="num_paiement"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="llx_paiement"/>
+		</field>
+		<field name="tot" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.name" value="tot"/>
+			<property name="com.jaspersoft.studio.field.label" value="tot"/>
+		</field>
+	</subDataset>
+	<parameter name="SHOP" class="java.lang.Integer"/>
+	<queryString language="plsql">
+		<![CDATA[with x as(
+select
+fk_facture_source, 
+sum(total_ttc) cr_tot
+from llx_facture
+group by fk_facture_source)
+-------
+SELECT
+    f.rowid,
+	f."ref" AS client_id,
+    s.rowid acid,
+	s.nom,
+    s.name_alias,
+	COALESCE(s.address,' ') address,
+	s.town,
+	s.phone,
+	s.fax,
+   f.datef invoice_date,
+	coalesce(pr."label",fd.description) AS prod,
+	f.date_lim_reglement AS due_date,
+	ct.label,
+    round(f.total_ttc+coalesce(x.cr_tot,0)) - SUM(COALESCE(round(pf.amount),0))  as balance
+FROM
+  llx_facture f
+	left join llx_societe s on f.fk_soc = s.rowid
+	LEFT JOIN
+	llx_paiement_facture AS pf
+	ON 
+		f.rowid = pf.fk_facture
+	LEFT JOIN
+	llx_paiement AS "p"
+	ON 
+		pf.fk_paiement = p.rowid
+	LEFT JOIN
+	llx_facturedet AS fd
+	ON 
+		f.rowid = fd.fk_facture
+	LEFT JOIN
+	llx_product AS pr
+	ON 
+		fd.fk_product = pr.rowid
+	left join x on f.rowid = x.fk_facture_source
+	join llx_categorie_societe cs on cs.fk_soc = s.rowid
+	join llx_categorie ct on ct.rowid = cs.fk_categorie
+	where ct.rowid = $P{SHOP}
+and fd.total_ht  > 0
+GROUP by
+ 	f.rowid,
+ 	x.cr_tot, 
+	pr."label", 
+    s.rowid,
+	s.nom,
+	s.name_alias,
+	s.address,
+	s.town,
+	s.phone,
+	s.fax,
+	fd.description,
+	ct.label
+having
+	round(f.total_ttc+coalesce(x.cr_tot,0)) - SUM(COALESCE(round(pf.amount),0)) > 0
+ORDER BY
+	s.nom]]>
+	</queryString>
+	<field name="rowid" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="rowid"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="client_id" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="client_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="acid" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="acid"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="nom" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="nom"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="name_alias" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="name_alias"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="address" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="address"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="town" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="town"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="phone" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="phone"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="fax" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="fax"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="invoice_date" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.label" value="invoice_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="prod" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="prod"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facturedet"/>
+	</field>
+	<field name="due_date" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.label" value="due_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="label" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="label"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_categorie"/>
+	</field>
+	<field name="balance" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="balance"/>
+	</field>
+	<group name="town" isStartNewPage="true" isResetPageNumber="true" keepTogether="true" preventOrphanFooter="true"/>
+	<group name="address" preventOrphanFooter="true"/>
+	<group name="nom">
+		<groupExpression><![CDATA[$F{nom}]]></groupExpression>
+	</group>
+	<pageHeader>
+		<band height="30">
+			<textField>
+				<reportElement x="0" y="0" width="556" height="30" uuid="da8c17f5-fa48-49c2-8cc3-4abca564d23e"/>
+				<textElement textAlignment="Center">
+					<font size="19" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="50" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement style="Style_Due_Date" x="1" y="0" width="80" height="15" uuid="5f618280-c8c0-47f4-823c-1c47f2a18a5d">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="42660949-6e3e-44e8-9584-75158b87058d"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{client_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement style="Style_Due_Date" x="81" y="0" width="173" height="15" uuid="fdf2698e-e26f-4d6b-89b1-f469d384d565">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f492d627-44dd-4403-abb8-bf97828595e5"/>
+				</reportElement>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nom}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement style="Style_Due_Date" x="254" y="0" width="79" height="15" uuid="49ed87f3-df0e-4da1-b19d-c3a6cd6dc305">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="ac1be666-4dab-4947-8cc6-52cb978ab2be"/>
+				</reportElement>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{phone}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement style="Style_Due_Date" x="254" y="15" width="79" height="15" uuid="3d895964-6854-4dcc-a725-1dda7baa29b7">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="ccec5003-1020-42a8-b364-1e345a3db3a3"/>
+				</reportElement>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fax}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement style="Style_Due_Date" x="333" y="0" width="69" height="15" uuid="360f6332-e9d5-409f-bf3a-15ddb03e075f">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="093f9ea7-fb71-4fb7-a7ae-bf687da9b8cc"/>
+				</reportElement>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{prod}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,###" isBlankWhenNull="true">
+				<reportElement style="Style_Due_Date" x="402" y="0" width="71" height="15" uuid="1b5b9498-01d7-44f4-a4aa-fb0543411f03">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="bfe06d11-040f-402c-b4e9-f7d28726add0"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{balance}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="-2" y="-2" width="560" height="1" uuid="fe8e1354-f14a-4d5e-98fb-535c8d71eecc">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField pattern="dd-MM-yy &apos;(&apos;EE&apos;)&apos;" isBlankWhenNull="true">
+				<reportElement style="Style_Due_Date" x="473" y="0" width="81" height="15" uuid="2c5c1e8f-ccde-4beb-9d4e-f0853195094b"/>
+				<textFieldExpression><![CDATA[$F{due_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Style_Due_Date" x="0" y="16" width="250" height="15" uuid="623379dd-fa31-43ba-8f2b-679cf4f5e296"/>
+				<textElement>
+					<font isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{town}+ " : " +$F{address}]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="402" y="16" width="151" height="13" uuid="3ebffdc5-95d5-4bbd-ab6a-251057862cc2"/>
+				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+					<datasetRun subDataset="checkpoint" uuid="eb0f52be-ad38-4e3b-aef5-b06999b7ace2">
+						<datasetParameter name="ACC_ID">
+							<datasetParameterExpression><![CDATA[$F{acid}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:listContents height="13" width="151">
+						<textField>
+							<reportElement x="0" y="0" width="151" height="13" uuid="e938e4bb-6108-4b4b-b8c2-c5094569f039"/>
+							<textFieldExpression><![CDATA["CHK: "+$F{ac_label}+" "+new SimpleDateFormat("dd-MM-yy").format($F{ac_datep})]]></textFieldExpression>
+						</textField>
+					</jr:listContents>
+				</jr:list>
+			</componentElement>
+			<componentElement>
+				<reportElement x="1" y="31" width="89" height="13" isRemoveLineWhenBlank="true" uuid="ede78093-7e24-48f9-b610-3a6e6a84b772">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+				</reportElement>
+				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Horizontal" ignoreWidth="true">
+					<datasetRun subDataset="payments" uuid="0f799b0e-782b-4d67-adba-66850c13f625">
+						<datasetParameter name="REC_ID">
+							<datasetParameterExpression><![CDATA[$F{rowid}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:listContents height="13" width="89">
+						<textField pattern="dd-MM-yy">
+							<reportElement x="0" y="0" width="89" height="13" forecolor="#000066" uuid="7257300b-df0a-49c5-917f-4421d4d49833">
+								<property name="com.jaspersoft.studio.unit.width" value="px"/>
+								<property name="com.jaspersoft.studio.unit.height" value="px"/>
+							</reportElement>
+							<textElement>
+								<font size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[new SimpleDateFormat("dd-MM-yy").format($F{datep})+" "+$F{num_paiement}+" "+$F{tot}+";"]]></textFieldExpression>
+						</textField>
+					</jr:listContents>
+				</jr:list>
+			</componentElement>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField pattern="MMMMM dd, yyyy">
+				<reportElement x="2" y="2" width="268" height="18" uuid="83cff857-5ae0-471e-bd89-4e638cc4e993"/>
+				<textFieldExpression><![CDATA["Print date:  "+new SimpleDateFormat("dd-MM-yyyy HH:MM").format(TODAY( ))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="407" y="1" width="100" height="19" uuid="98a0976d-f137-4853-8341-5ac9d0baf390"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="507" y="1" width="46" height="19" uuid="bd1493bf-ea4e-4122-8382-eed26166f4cb"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[" of " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

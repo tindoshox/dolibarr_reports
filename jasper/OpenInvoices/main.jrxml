@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.21.0.final using JasperReports Library version 6.21.0-4f56c4f36cd19e17675219a9ac4692d5f0f13b06  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="OpenInvoices" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="eaa9a1a3-f8ad-4096-9cfe-19f574a23aee">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Local"/>
+	<parameter name="GROUP" class="java.lang.Integer"/>
+	<queryString language="plsql">
+		<![CDATA[with x as(
+    select
+        fk_facture_source,
+        sum(total_ttc) cr_tot
+    from llx_facture
+    group by fk_facture_source)
+-------
+SELECT
+    f."ref" AS invoice,
+    date(f.date_valid) invoice_date,
+    s.nom customer,
+    s.address,
+    d.nom area,
+    coalesce(pr."label",fd.description) AS product,
+    max(date(p.datep)) last_pay,
+    date(f.date_lim_reglement) AS due_date,
+    round(f.total_ttc+coalesce(x.cr_tot,0)) price,
+    SUM(COALESCE(round(pf.amount),0)) paid,
+    round(f.total_ttc+coalesce(x.cr_tot,0)) - SUM(COALESCE(round(pf.amount),0))  as balance
+FROM
+    llx_facture f
+        left join llx_societe s on f.fk_soc = s.rowid
+        LEFT JOIN llx_paiement_facture AS pf ON f.rowid = pf.fk_facture
+        LEFT JOIN llx_paiement AS "p" ON pf.fk_paiement = p.rowid
+        LEFT JOIN llx_facturedet AS fd ON f.rowid = fd.fk_facture
+        LEFT JOIN llx_product AS pr ON  fd.fk_product = pr.rowid
+        left join x on f.rowid = x.fk_facture_source
+        left join llx_c_departements d on d.rowid = s.fk_departement
+where (s.fk_departement = $P{GROUP}) or ($P{GROUP} is null)
+and f.type = 0
+and f.fk_statut = 1
+GROUP by
+    f.rowid,
+    x.cr_tot,
+    pr."label",
+    s.rowid,
+    s.nom,
+    s.name_alias,
+    s.address,
+    d.nom,
+    fd.description
+having round(f.total_ttc+coalesce(x.cr_tot,0)) - SUM(COALESCE(round(pf.amount),0)) > 0
+ORDER BY
+    s.town,
+    s.address,
+    s.nom]]>
+	</queryString>
+	<field name="invoice" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="invoice"/>
+		<property name="com.jaspersoft.studio.field.label" value="invoice"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="invoice_date" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="invoice_date"/>
+		<property name="com.jaspersoft.studio.field.label" value="invoice_date"/>
+	</field>
+	<field name="customer" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="customer"/>
+		<property name="com.jaspersoft.studio.field.label" value="customer"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="address" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address"/>
+		<property name="com.jaspersoft.studio.field.label" value="address"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="area" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="area"/>
+		<property name="com.jaspersoft.studio.field.label" value="area"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_c_departements"/>
+	</field>
+	<field name="product" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="product"/>
+		<property name="com.jaspersoft.studio.field.label" value="product"/>
+	</field>
+	<field name="last_pay" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="last_pay"/>
+		<property name="com.jaspersoft.studio.field.label" value="last_pay"/>
+	</field>
+	<field name="due_date" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="due_date"/>
+		<property name="com.jaspersoft.studio.field.label" value="due_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="price" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="price"/>
+		<property name="com.jaspersoft.studio.field.label" value="price"/>
+	</field>
+	<field name="paid" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="paid"/>
+		<property name="com.jaspersoft.studio.field.label" value="paid"/>
+	</field>
+	<field name="balance" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="balance"/>
+		<property name="com.jaspersoft.studio.field.label" value="balance"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="22" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="82" height="20" uuid="8f394ab3-aee2-499a-8b1a-10afed2b45a4">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="7c4534ce-106d-40f7-a7e1-ffe7add22bee"/>
+				</reportElement>
+				<text><![CDATA[invoice]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="82" y="0" width="72" height="20" uuid="f7c8a197-0265-42d0-9450-72c7ddecc6af">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="54c745da-d461-499a-a66d-0a37e5725b38"/>
+				</reportElement>
+				<text><![CDATA[invoice_date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="154" y="0" width="72" height="20" uuid="a91af084-87f2-4b15-a714-97b89c060378">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="6509788e-f7e3-452f-a4f1-beb98781fea0"/>
+				</reportElement>
+				<text><![CDATA[customer]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="226" y="0" width="72" height="20" uuid="7a1e17e8-b2b7-4804-abce-2c414fdd3f8d">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="cdbb2e91-5e73-4bbc-8d3d-7bba4531cb08"/>
+				</reportElement>
+				<text><![CDATA[address]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="298" y="0" width="72" height="20" uuid="769a1d55-89fc-4424-8572-5d0b27d06353">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0056e21e-ae33-4469-a42f-b44adcc44852"/>
+				</reportElement>
+				<text><![CDATA[area]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="370" y="0" width="72" height="20" uuid="93d25053-6658-4ff6-81bd-a252d496ae53">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="aa0643f4-2e29-4d7d-a2b6-41d1bad5491b"/>
+				</reportElement>
+				<text><![CDATA[product]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="442" y="0" width="72" height="20" uuid="d2f341b2-02b8-4c20-abd1-273be31eba44">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b303cc72-3325-4b70-b051-9ba93ff7a4cd"/>
+				</reportElement>
+				<text><![CDATA[last_pay]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="514" y="0" width="72" height="20" uuid="fc878ea7-885d-46c7-b93f-d213e30a65b6">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="e1dfe853-b423-4966-b4ac-038f94cfd803"/>
+				</reportElement>
+				<text><![CDATA[due_date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="586" y="0" width="72" height="20" uuid="d408ed09-3d17-4c78-a0c6-65f7e09e60b8">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="47084b54-82a8-4c02-8a7a-99bedfa5c67a"/>
+				</reportElement>
+				<text><![CDATA[price]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="658" y="0" width="72" height="20" uuid="92c9346a-1de0-47e2-865e-73feda5c181f">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="3a285b9e-a3ff-4947-9abf-21e0e0ed35b6"/>
+				</reportElement>
+				<text><![CDATA[paid]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="730" y="0" width="72" height="20" uuid="a2c05b74-cc55-49c5-8dd4-2ffb3d2dc709">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="302d5464-65e2-4a8f-a87e-00a224abd811"/>
+				</reportElement>
+				<text><![CDATA[balance]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="22" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="82" height="20" uuid="bd58f948-49a4-4aea-8d63-f758c0591028">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="7c4534ce-106d-40f7-a7e1-ffe7add22bee"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{invoice}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="82" y="0" width="72" height="20" uuid="162387ae-276d-43a5-af94-17860008b186">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="54c745da-d461-499a-a66d-0a37e5725b38"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[DATEFORMAT($F{invoice_date},"yyyy-MM-dd")]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="154" y="0" width="72" height="20" uuid="d53d3915-9b4b-408b-8c42-8e06f35973cd">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="6509788e-f7e3-452f-a4f1-beb98781fea0"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{customer}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="226" y="0" width="72" height="20" uuid="3ce3a018-e181-4f49-9a43-ad474386dc4e">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="cdbb2e91-5e73-4bbc-8d3d-7bba4531cb08"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{address}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="298" y="0" width="72" height="20" uuid="f9ab0b92-46a4-40f5-bdf6-d7adda3fba8e">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0056e21e-ae33-4469-a42f-b44adcc44852"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{area}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="370" y="0" width="72" height="20" uuid="d74dcdf1-8e5b-4218-894e-4669eb50f42a">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="aa0643f4-2e29-4d7d-a2b6-41d1bad5491b"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{product}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="442" y="0" width="72" height="20" uuid="689f9b2e-8eab-47d1-95df-edf539afcec6">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b303cc72-3325-4b70-b051-9ba93ff7a4cd"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[DATEFORMAT($F{last_pay},"yyyy-MM-dd")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="514" y="0" width="72" height="20" uuid="c959f7a0-31dd-45d5-b667-80f18c1d5e7e">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="e1dfe853-b423-4966-b4ac-038f94cfd803"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[DATEFORMAT($F{due_date},"yyyy-MM-dd")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="586" y="0" width="72" height="20" uuid="ced3407c-10d4-464b-9b82-6c06722d49db">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="47084b54-82a8-4c02-8a7a-99bedfa5c67a"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{price}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="658" y="0" width="72" height="20" uuid="0787bccb-f75f-46e5-9ef8-d2024a610860">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="3a285b9e-a3ff-4947-9abf-21e0e0ed35b6"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{paid}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="730" y="0" width="72" height="20" uuid="dd105a48-3f1b-471f-936f-21306bffd63f">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="302d5464-65e2-4a8f-a87e-00a224abd811"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{balance}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.14.0.final using JasperReports Library version 6.14.0-2ab0d8625be255bf609c78e1181801213e51db8f  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="shopcheck" pageWidth="270" pageHeight="20" columnWidth="270" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="4645b48e-5e59-48e1-a1b1-34a61208edc1">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<parameter name="ACC_ID" class="java.lang.Integer"/>
+	<queryString language="plsql">
+		<![CDATA[SELECT
+  DISTINCT ac.id as ac_id,
+  ac.ref_ext as ac_ref_ext,
+  ac.datec as ac_datec,
+  ac.datep as ac_datep,
+  ac.label as ac_label,
+  ac.note as ac_note,
+  cac.libelle as cac_libelle,
+  s.rowid as s_nom
+FROM
+  llx_actioncomm as ac
+  LEFT JOIN llx_c_actioncomm as cac on ac.fk_action = cac.id
+  LEFT JOIN llx_socpeople as sp on ac.fk_contact = sp.rowid
+  LEFT JOIN llx_societe as s on ac.fk_soc = s.rowid
+  LEFT JOIN llx_c_country as co on s.fk_pays = co.rowid
+WHERE
+  ac.fk_action = 11
+  and percent < 100
+  and s.rowid = $P{ACC_ID}
+ORDER BY
+  ac.datep desc
+  limit 1]]>
+	</queryString>
+	<field name="ac_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ac_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+	</field>
+	<field name="ac_ref_ext" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ac_ref_ext"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+	</field>
+	<field name="ac_datec" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="ac_datec"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+	</field>
+	<field name="ac_datep" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="ac_datep"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+	</field>
+	<field name="ac_label" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ac_label"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+	</field>
+	<field name="ac_note" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ac_note"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_actioncomm"/>
+	</field>
+	<field name="cac_libelle" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="cac_libelle"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_c_actioncomm"/>
+	</field>
+	<field name="s_nom" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="s_nom"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="160" height="14" forecolor="#000000" uuid="f3370469-ddf1-4b0d-bcdd-4760306be0e3">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA["CHK: "+$F{ac_label}+" "+new SimpleDateFormat("dd-MM-yy").format($F{ac_datep})]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

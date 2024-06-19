@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.14.0.final using JasperReports Library version 6.14.0-2ab0d8625be255bf609c78e1181801213e51db8f  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="balgroupsub" columnCount="5" printOrder="Horizontal" pageWidth="595" pageHeight="20" columnWidth="117" columnSpacing="2" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="b8f8f46c-669c-4c28-bee0-b5b157d66c32">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="REC_ID" class="java.lang.Integer" isForPrompting="false"/>
+	<queryString language="plsql">
+		<![CDATA[SELECT 
+	f.rowid, 
+	date(pa.datep) as datep, 
+	pa.num_paiement, 
+	round(pa.amount) tot
+FROM
+	llx_facture AS f
+	INNER JOIN
+	llx_paiement_facture AS pf
+	ON 
+		f.rowid = pf.fk_facture
+	INNER JOIN
+	llx_paiement AS pa
+	ON 
+		pa.rowid = pf.fk_paiement
+where f.rowid = $P{REC_ID}
+     order by
+    pa.datep asc
+	limit 5]]>
+	</queryString>
+	<field name="rowid" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="rowid"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="datep" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.label" value="datep"/>
+	</field>
+	<field name="num_paiement" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="num_paiement"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_paiement"/>
+	</field>
+	<field name="tot" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="tot"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_paiement"/>
+	</field>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<textField pattern="dd-MM-yy">
+				<reportElement x="0" y="1" width="110" height="12" forecolor="#000066" uuid="751b7948-b255-4984-855a-4d0e8d2e8fb8">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[new SimpleDateFormat("dd-MM-yy").format($F{datep})+" "+$F{num_paiement}+" "+$F{tot}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

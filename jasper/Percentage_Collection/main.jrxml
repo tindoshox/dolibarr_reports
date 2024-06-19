@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.19.0.final using JasperReports Library version 6.19.0-646c68931cebf1a58bc65c4359d1f0ca223c5e94  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Percentage_Collection" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="822" leftMargin="10" rightMargin="10" topMargin="10" bottomMargin="10" uuid="dc3964ca-878a-4cfc-ab58-f236c95680c7">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Local"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="856"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="130"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="119"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="874"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<style name="Style1">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{colrate}.compareTo( new BigDecimal(0.5)) ==-1]]></conditionExpression>
+			<style forecolor="#FF0400" isBold="true"/>
+		</conditionalStyle>
+	</style>
+	<style name="Style2" backcolor="#EBF3FA">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{colrate1}.compareTo( new BigDecimal(0.5)) ==-1]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+	</style>
+	<style name="Style3" backcolor="#E8E8E8">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2==0]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+	</style>
+	<parameter name="BASEDATE" class="java.util.Date">
+		<defaultValueExpression><![CDATA[TODAY( )]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select nom,
+round(sum(ab.paidamount)) paidamount,
+sum(ab.paiditems) paiditems, 
+sum(ab.openitems) openitems,
+sum(ab.newitems) newitems,
+sum(ab.finished) finished,
+sum(ab.taken) taken,
+round(sum(ab.paidamount)/greatest(sum(ab.paiditems),1)) average,
+sum(ab.openitems - ab.paiditems) unpaiditems,
+round(sum(ab.openitems - ab.paiditems)*sum(ab.paidamount)/greatest(sum(ab.paiditems),1)) lost,
+sum(ab.paiditems)/sum(ab.openitems) colrate
+from
+(select
+d.nom nom,
+sum(p.amount) paidamount,
+count(f.rowid) paiditems,
+0 as openitems,
+0 as newitems,
+0 as finished,
+0 as taken
+from
+llx_facture f
+join llx_paiement_facture pf on pf.fk_facture = f.rowid 
+join llx_paiement p on p.rowid  = pf.fk_paiement  
+join llx_societe s on s.rowid = f.fk_soc
+join llx_c_departements d on d.rowid = s.fk_departement
+where to_char(p.datep::DATE, 'yyyy-mm') =to_char($P{BASEDATE}::DATE, 'yyyy-mm')
+group by d.nom
+union select 
+m.nom nom,
+0 as paidamount,
+0 as paiditems,
+0 as openitems, 
+0 as newitems,
+count(m.nom) finished,
+0 as taken 
+from (with balances as (select
+f1.rowid as id,
+sum(f1.total_ttc) as amount
+from
+llx_facture f1
+where
+f1.fk_facture_source is null
+and "type" = 0
+group by
+id
+union
+select
+f2.fk_facture_source as id,
+sum(f2.total_ttc) as amount
+from
+llx_facture f2
+where
+f2.fk_facture_source is not null
+group by
+id
+union
+select
+f3.fk_facture as id,
+sum(f3.amount)*-1 as amount
+from
+llx_paiement_facture f3
+group by
+id)
+select 
+d.nom
+from llx_paiement p
+join llx_paiement_facture pf on  pf.fk_paiement = p.rowid 
+join llx_facture f on f.rowid  = pf.fk_facture  
+join balances b on b.id = f.rowid 
+join  llx_societe s on s.rowid  = f.fk_soc  
+join llx_c_departements d on d.rowid  = s.fk_departement 
+join llx_facturedet as fd on f.rowid = fd.fk_facture
+join llx_product as pr on fd.fk_product = pr.rowid
+where f.paye = 1
+and f.fk_facture_source is null
+and f.rowid not in (select lf.fk_facture_source from llx_facture lf where lf.fk_facture_source notnull)
+group by f.rowid,
+d.nom
+having  to_char(max(p.datep)::DATE, 'yyyy-mm')  = to_char($P{BASEDATE}::DATE, 'yyyy-mm')) as m
+	group by m.nom
+	--
+	union select 
+n.nom nom,
+0 as paidamount,
+0 as paiditems,
+0 as openitems, 
+count(n.nom) as newitems,
+0 as finished,
+0 as taken 
+from (select
+	d.nom
+from llx_societe as s
+left join llx_c_country as c on
+	s.fk_pays = c.rowid
+left join llx_c_departements as d on
+	s.fk_departement = d.rowid,
+	llx_facture as f
+left join llx_projet as pj on
+	f.fk_projet = pj.rowid
+left join llx_user as uc on
+	f.fk_user_author = uc.rowid
+left join llx_user as uv on
+	f.fk_user_valid = uv.rowid
+left join llx_facture_extrafields as extra on
+	f.rowid = extra.fk_object ,
+	llx_facturedet as fd
+left join llx_facturedet_extrafields as extra2 on
+	fd.rowid = extra2.fk_object
+left join llx_product as p on
+	(fd.fk_product = p.rowid)
+left join llx_product_extrafields as extra3 on
+	p.rowid = extra3.fk_object
+where
+	f.fk_soc = s.rowid
+	and f.rowid = fd.fk_facture
+	and f.paye = 0
+	and f.type=0
+	and to_char(f.datef::DATE, 'yyyy-mm') = to_char($P{BASEDATE}::DATE,'yyyy-mm')
+and fd.total_ht  > 0) as n
+	group by n.nom
+	--
+	union select 
+t.nom nom,
+0 as paidamount,
+0 as paiditems,
+0 as newitems,
+0 as openitems, 
+0 as finished,
+count(t.nom) as taken 
+from (SELECT
+	d.nom
+FROM
+  llx_facture f
+	left join llx_societe s on f.fk_soc = s.rowid
+	join llx_c_departements d on s.fk_departement = d.rowid 
+	LEFT JOIN
+	llx_paiement_facture AS pf	ON 	f.rowid = pf.fk_facture
+	LEFT join llx_paiement AS "p" ON pf.fk_paiement = p.rowid
+	where to_char(f.datef ::DATE, 'yyyy-mm') =to_char($P{BASEDATE}::DATE, 'yyyy-mm') 
+	and f."type" = 2
+GROUP by
+ 	f.rowid,
+    s.rowid,
+	d.nom) as t
+	group by t.nom
+union select 
+o.nom nom,
+0 as paidamount,
+0 as paiditems,
+count(o.nom) openitems,
+0 as newitems,
+0 as finished ,
+0 as taken 
+from (
+with x as(
+select
+fk_facture_source, 
+sum(total_ttc) cr_tot
+from llx_facture
+group by fk_facture_source)
+-------
+SELECT
+	d.nom
+FROM
+  llx_facture f
+	left join llx_societe s on f.fk_soc = s.rowid
+	join llx_c_departements d on s.fk_departement = d.rowid 
+	LEFT JOIN
+	llx_paiement_facture AS pf	ON 	f.rowid = pf.fk_facture
+	LEFT join llx_paiement AS "p" ON pf.fk_paiement = p.rowid
+	left join x on f.rowid = x.fk_facture_source
+	where date(datef) <=(date_trunc('MONTH', ($P{BASEDATE}||'01')::date) + INTERVAL '1 MONTH - 1 day')::DATE
+	and (date(p.datep) <=(date_trunc('MONTH', ($P{BASEDATE}||'01')::date) + INTERVAL '1 MONTH - 1 day')::DATE or date(p.datep) is null)
+GROUP by
+ 	f.rowid,
+ 	x.cr_tot, 
+    s.rowid,
+	d.nom
+having
+	round(f.total_ttc+coalesce(x.cr_tot,0)) - SUM(COALESCE(round(pf.amount),0)) > 0
+	union  all select
+	d.nom
+FROM
+  llx_facture f
+	left join llx_societe s on f.fk_soc = s.rowid
+	join llx_c_departements d on s.fk_departement = d.rowid 
+	LEFT JOIN
+	llx_paiement_facture AS pf	ON 	f.rowid = pf.fk_facture
+	LEFT join llx_paiement AS "p" ON pf.fk_paiement = p.rowid
+	left join x on f.rowid = x.fk_facture_source
+	where date(datef) <=(date_trunc('MONTH', ($P{BASEDATE}||'01')::date) + INTERVAL '1 MONTH - 1 day')::DATE
+	and to_char(p.datep::DATE, 'yyyy-mm') =to_char($P{BASEDATE}::DATE, 'yyyy-mm')
+GROUP by
+ 	f.rowid,
+ 	x.cr_tot, 
+    s.rowid,
+	d.nom
+having
+	round(f.total_ttc+coalesce(x.cr_tot,0)) - SUM(COALESCE(round(pf.amount),0)) <= 0
+) as o
+  GROUP BY
+  o.nom) as ab
+group by
+ab.nom
+order by ab.nom]]>
+	</queryString>
+	<field name="nom" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nom"/>
+		<property name="com.jaspersoft.studio.field.label" value="nom"/>
+	</field>
+	<field name="paidamount" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="paidamount"/>
+		<property name="com.jaspersoft.studio.field.label" value="paidamount"/>
+	</field>
+	<field name="paiditems" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="paiditems"/>
+		<property name="com.jaspersoft.studio.field.label" value="paiditems"/>
+	</field>
+	<field name="openitems" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="openitems"/>
+		<property name="com.jaspersoft.studio.field.label" value="openitems"/>
+	</field>
+	<field name="newitems" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="newitems"/>
+		<property name="com.jaspersoft.studio.field.label" value="newitems"/>
+	</field>
+	<field name="finished" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="finished"/>
+		<property name="com.jaspersoft.studio.field.label" value="finished"/>
+	</field>
+	<field name="taken" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="taken"/>
+		<property name="com.jaspersoft.studio.field.label" value="taken"/>
+	</field>
+	<field name="average" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="average"/>
+		<property name="com.jaspersoft.studio.field.label" value="average"/>
+	</field>
+	<field name="unpaiditems" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="unpaiditems"/>
+		<property name="com.jaspersoft.studio.field.label" value="unpaiditems"/>
+	</field>
+	<field name="lost" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="lost"/>
+		<property name="com.jaspersoft.studio.field.label" value="lost"/>
+	</field>
+	<field name="colrate" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="colrate"/>
+		<property name="com.jaspersoft.studio.field.label" value="colrate"/>
+	</field>
+	<variable name="paidamount1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{paidamount}]]></variableExpression>
+	</variable>
+	<variable name="paiditems1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{paiditems}]]></variableExpression>
+	</variable>
+	<variable name="openitems1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{openitems}]]></variableExpression>
+	</variable>
+	<variable name="colrate1" class="java.math.BigDecimal" calculation="Average">
+		<variableExpression><![CDATA[$F{colrate}]]></variableExpression>
+	</variable>
+	<variable name="unpaid1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{unpaiditems}]]></variableExpression>
+	</variable>
+	<variable name="lost1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{lost}]]></variableExpression>
+	</variable>
+	<variable name="finished1" class="java.math.BigDecimal" resetType="Group" resetGroup="Group1" calculation="Sum">
+		<variableExpression><![CDATA[$F{finished}]]></variableExpression>
+	</variable>
+	<variable name="taken1" class="java.math.BigDecimal" resetType="Group" resetGroup="Group1" calculation="Sum">
+		<variableExpression><![CDATA[$F{taken}]]></variableExpression>
+	</variable>
+	<variable name="newitems1" class="java.math.BigDecimal" resetType="Group" resetGroup="Group1" calculation="Sum">
+		<variableExpression><![CDATA[$F{newitems}]]></variableExpression>
+	</variable>
+	<group name="Group1">
+		<groupFooter>
+			<band height="20">
+				<textField pattern="¤#,##0.##;¤-##0">
+					<reportElement x="122" y="4" width="83" height="16" uuid="f1d4cd13-ecb6-4123-ad8f-1d0cc28b757f">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{paidamount1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0">
+					<reportElement x="263" y="4" width="50" height="16" uuid="c9ceb792-9ece-44da-ae1f-a785172f8d2b"/>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{paiditems1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0">
+					<reportElement x="383" y="4" width="46" height="16" uuid="afe5758e-9e44-4b64-bd1e-1d6b6b6c3829"/>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{openitems1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.##%">
+					<reportElement style="Style2" x="600" y="4" width="62" height="16" uuid="7d940c7e-e0ef-4bd3-b972-7c9be75f1cc9"/>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{colrate1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0">
+					<reportElement x="323" y="4" width="49" height="16" uuid="73bd7c95-87c6-4e54-8638-da456253ef5e"/>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{unpaid1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="¤#,##0.##;¤-##0">
+					<reportElement x="670" y="4" width="81" height="16" uuid="76ea4412-be7d-49b1-840d-5edf46dba068">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{lost1}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="505" y="4" width="34" height="16" uuid="6f5d3cb1-2623-476f-b74e-8619f0889067"/>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{finished1}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="552" y="4" width="41" height="16" uuid="2f849957-34fc-4ce1-add7-699f31d20259"/>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{taken1}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="446" y="4" width="46" height="16" uuid="9068ed98-8539-41be-bb2d-972c900908fc"/>
+					<textElement textAlignment="Center">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{newitems1}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="1" y="2" width="789" height="1" uuid="244336aa-7600-4ccd-8f7e-538876beb394"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="32" splitType="Stretch">
+			<textField>
+				<reportElement x="1" y="2" width="573" height="30" uuid="54a7b5e3-a870-410d-8e87-908b70fe703d"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["PERCENTAGE COLLECTION FOR: "+DATEFORMAT($P{BASEDATE}, "MMM-YYYY" )]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="1" y="30" width="789" height="1" uuid="5773b057-c827-4fbc-800c-17a3f24f3f2e"/>
+			</line>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="18" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="110" height="17" uuid="73ec74ce-9275-46ff-b6aa-65d354fa0228">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="69be5139-33d0-4e3e-baad-71c203ac5745"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GROUP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="123" y="0" width="83" height="17" uuid="fb026812-9f70-4027-8a72-9cdede87952c">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="82441524-6d72-4c7e-b20e-25705a6e8b4e"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AMOUNT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="263" y="1" width="50" height="17" uuid="798dcf8a-b15a-4f81-b798-8e229c7b3704">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f35dd9b0-a3eb-4e03-88a5-74616e69397a"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PAID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="383" y="0" width="46" height="17" uuid="a5181656-e0b1-4203-979e-3022a3ed936a">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="7caf135e-8cd7-4032-844e-54b70b267a8f"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="598" y="0" width="64" height="17" uuid="b77b1a21-ca6f-4ede-bc2d-c254a846158b">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="95f27192-52f5-40b2-bb13-f6613ad5512b"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[% PAID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="213" y="0" width="40" height="17" uuid="444a4895-0a2e-4890-9df5-0e07a3bcd99f">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="260c9e2d-6be1-4eb8-8aa6-c89415825f4e"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AVE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="323" y="1" width="49" height="17" uuid="ade8c173-5596-4584-ac79-c7eaf7aaa867">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f35dd9b0-a3eb-4e03-88a5-74616e69397a"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[UNPAID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="670" y="0" width="81" height="17" uuid="faeb4dd1-fb6e-4ac9-8e7e-cdd955cc49f8">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="82441524-6d72-4c7e-b20e-25705a6e8b4e"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[LOST]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="552" y="0" width="41" height="17" uuid="aa30433d-610e-442e-9235-cb9fdf63bdb5"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TAKEN]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="505" y="0" width="39" height="17" uuid="89472d5a-81f9-452d-9a1e-0e65f374611d"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FINISH]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="446" y="1" width="46" height="17" uuid="7f841af2-4332-4196-ae5c-c2b10c48a8cd"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SALES]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="36" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout"/>
+			<textField>
+				<reportElement x="0" y="3" width="110" height="17" uuid="1c504e84-bfbe-4458-99ec-08b8d0926a3b">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="69be5139-33d0-4e3e-baad-71c203ac5745"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nom}]]></textFieldExpression>
+			</textField>
+			<textField pattern="¤#,##0.##;¤-##0">
+				<reportElement x="121" y="3" width="83" height="17" uuid="e0807847-6fbd-4085-908a-a3fc399897e0">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="82441524-6d72-4c7e-b20e-25705a6e8b4e"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{paidamount}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="263" y="3" width="50" height="17" uuid="d91f19f9-c9e6-4a3f-8532-6850c920290a">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f35dd9b0-a3eb-4e03-88a5-74616e69397a"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{paiditems}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="383" y="3" width="46" height="17" uuid="9a0b3509-58b2-44e7-b915-1e80280c3da3">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="7caf135e-8cd7-4032-844e-54b70b267a8f"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{openitems}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.##%">
+				<reportElement x="599" y="3" width="62" height="17" uuid="c3a6b094-713f-46a0-9cf3-96baea7634df">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="95f27192-52f5-40b2-bb13-f6613ad5512b"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{colrate}]]></textFieldExpression>
+			</textField>
+			<textField pattern="¤#,##0.##;¤-##0">
+				<reportElement x="213" y="3" width="40" height="17" uuid="4256cd60-caf1-4ef8-9cfb-9a45f4505605">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="89ea8071-59bb-4b32-b8ca-c313121d739d"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{average}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="320" y="3" width="50" height="17" uuid="9750afdd-0e69-45fb-a5fe-b63aae1ee174">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f35dd9b0-a3eb-4e03-88a5-74616e69397a"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{unpaiditems}]]></textFieldExpression>
+			</textField>
+			<textField pattern="¤#,##0.##;¤-##0">
+				<reportElement x="669" y="3" width="83" height="17" uuid="f52d8efb-36b5-4b31-855b-5b021e566215">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="82441524-6d72-4c7e-b20e-25705a6e8b4e"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lost}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="505" y="3" width="38" height="17" uuid="1e7b62da-811d-44e2-9323-2db236bcee6a">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="81d411d8-e19e-4600-8250-9cc0ade12324"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{finished}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="552" y="3" width="41" height="17" uuid="f597797f-2855-4647-beb4-3cfd1c8fe64c">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41d68f95-f6ef-4e42-a9f3-d7265b63801d"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{taken}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="446" y="3" width="46" height="17" uuid="e6e037b5-7ab9-4a30-b9e8-ac2f320a2404"/>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{newitems}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="1" y="-1" width="789" height="1" uuid="0fb48058-ef48-45e3-bf5e-8f30c5ebe11b"/>
+			</line>
+		</band>
+	</detail>
+</jasperReport>

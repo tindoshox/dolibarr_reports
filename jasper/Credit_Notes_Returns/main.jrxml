@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.19.1-867c00bf88cd4d784d404379d6c05e1b419e8a4c  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="returns" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a04b825d-ed15-4f2c-a563-8e419adc7e54">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="localhost"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="FROM_DATE" class="java.util.Date">
+		<defaultValueExpression><![CDATA[TODAY()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TO_DATE" class="java.util.Date">
+		<defaultValueExpression><![CDATA[TODAY()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GROUP" class="java.lang.Integer"/>
+	<queryString language="plsql">
+		<![CDATA[with x as (SELECT
+    f.fk_facture_source,
+   f.datef credit_date,
+	f.total_ttc credit_amount
+FROM
+  llx_facture f
+	left join
+      llx_societe s on f.fk_soc = s.rowid
+	LEFT JOIN
+	llx_facturedet AS fd
+	ON	f.rowid = fd.fk_facture
+	LEFT JOIN llx_product AS pr
+	ON	fd.fk_product = pr.rowid
+where f.type = 2)
+
+SELECT
+    f.rowid,
+	f."ref" AS client_id,
+	s.nom,
+	s.address,
+	s.town,
+	s.phone,
+	s.fax,
+	coalesce(pr."label",fd.description) AS prod,
+    date(f.datef) invoice_date,
+    date(x.credit_date) credit_date,
+	round(f.total_ttc) inv_amount,
+    round(x.credit_amount) credit_amount
+FROM
+  llx_facture f
+	left join
+      llx_societe s on f.fk_soc = s.rowid
+	LEFT JOIN
+	llx_facturedet AS fd
+	ON	f.rowid = fd.fk_facture
+	LEFT JOIN llx_product AS pr
+	ON	fd.fk_product = pr.rowid
+    join x on x.fk_facture_source = f.rowid
+where f.type = 0
+and f.date_closing is not null
+and f.rowid in (select cr.fk_facture_source rowid from llx_facture cr where fk_facture_source is not null)
+and (s.fk_departement = $P{GROUP}) OR ($P{GROUP} is null)
+and   date(date_closing) between $P{FROM_DATE} and $P{TO_DATE}]]>
+	</queryString>
+	<field name="rowid" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="rowid"/>
+		<property name="com.jaspersoft.studio.field.label" value="rowid"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="client_id" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="client_id"/>
+		<property name="com.jaspersoft.studio.field.label" value="client_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="nom" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nom"/>
+		<property name="com.jaspersoft.studio.field.label" value="nom"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="address" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address"/>
+		<property name="com.jaspersoft.studio.field.label" value="address"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="town" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="town"/>
+		<property name="com.jaspersoft.studio.field.label" value="town"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="phone" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="phone"/>
+		<property name="com.jaspersoft.studio.field.label" value="phone"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="fax" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="fax"/>
+		<property name="com.jaspersoft.studio.field.label" value="fax"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="prod" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="prod"/>
+		<property name="com.jaspersoft.studio.field.label" value="prod"/>
+	</field>
+	<field name="invoice_date" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="invoice_date"/>
+		<property name="com.jaspersoft.studio.field.label" value="invoice_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="credit_date" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="credit_date"/>
+		<property name="com.jaspersoft.studio.field.label" value="credit_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="inv_amount" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="inv_amount"/>
+		<property name="com.jaspersoft.studio.field.label" value="inv_amount"/>
+	</field>
+	<field name="credit_amount" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="credit_amount"/>
+		<property name="com.jaspersoft.studio.field.label" value="credit_amount"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="2" width="801" height="18" uuid="109a3959-95f2-4958-b9dd-5c642cf4bbce"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["RETURNS / CREDIT NOTES FROM "+$P{FROM_DATE}.toString()+" TO "+$P{TO_DATE}.toString()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="82" y="0" width="150" height="20" uuid="65bbb171-2486-43d8-97ef-d305d78527a9">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="5158ffdd-4701-4f31-8fba-12da3699ab25"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{nom}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="80" height="20" uuid="74d95be2-2c6d-4b53-9d94-753c3c8dfc10">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="cbc101f6-b025-4f25-9e24-b05ff56d5b7e"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{client_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="313" y="0" width="75" height="20" uuid="b07d21dc-afa5-4ca0-8b05-192f61982731">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="5b3a0526-c553-4a67-876c-7bb497631a81"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{address}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="235" y="0" width="75" height="20" uuid="322674d8-71be-4c2f-bfcb-841bfc95e624">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="de5f7dd3-7800-4f9c-95d4-2eea9df7f109"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{town}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="560" y="0" width="60" height="20" uuid="9cc27e44-1fa1-45ad-bfa8-75e3d4eb3655">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="ea8f26fa-01e8-43e4-a2b9-9c79875f5e48"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{invoice_date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="620" y="0" width="83" height="20" uuid="dbbf6f29-5600-4b97-80ac-f40ec754617f">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="6a1b96ef-c234-4f1b-9766-571026bc8cc0"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{credit_date}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="480" y="0" width="80" height="20" uuid="4206e82d-2b2c-4ae8-9256-5d03e1cc0d33">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="771875c0-4bf3-480f-8099-9426b6835573"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{prod}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="700" y="0" width="50" height="20" uuid="d03cd5d9-f050-4d68-baec-7e54bea1bdd2">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1f65ccd0-09bd-49dc-93f9-7096570c608b"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{inv_amount}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="751" y="0" width="50" height="20" uuid="654949a4-e767-410a-a8d0-ff4055f062ee">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="d3f5f45e-d5e5-4e1d-b99b-3ce39b24d3b9"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{credit_amount}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="390" y="0" width="90" height="20" uuid="e0361c6e-af27-453d-ac96-6ab35b43fa1f">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="ea2f7a60-742f-440d-8763-97776c3a2a5d"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{phone}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement x="700" y="0" width="100" height="18" uuid="7e7892b5-cb5c-4a92-ac03-f0af937ccdec"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField pattern="MMMMM dd, yyyy">
+				<reportElement x="2" y="2" width="268" height="18" uuid="b6e2988f-5f4a-4cc7-b53f-f337a5455537"/>
+				<textFieldExpression><![CDATA["Print date:  "+new SimpleDateFormat("dd-MM-yyyy HH:MM").format(TODAY( ))]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

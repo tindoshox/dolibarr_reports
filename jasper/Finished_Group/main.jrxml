@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.19.0.final using JasperReports Library version 6.19.0-646c68931cebf1a58bc65c4359d1f0ca223c5e94  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Finished_Group" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="b6e1d414-9dd0-421d-95be-2e1c0526e279">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Local"/>
+	<property name="ireport.jasperserver.url" value="https://smbi.co.za/jasperserver/"/>
+	<property name="ireport.jasperserver.user" value="jasperadmin"/>
+	<property name="ireport.jasperserver.report.resource" value="/tfshop/Finished_Group_files/main_jrxml"/>
+	<property name="ireport.jasperserver.reportUnit" value="/tfshop/Finished_Group"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="591"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="395"/>
+	<parameter name="GROUP" class="java.lang.Integer"/>
+	<parameter name="FROM_DATE" class="java.util.Date">
+		<defaultValueExpression><![CDATA[TODAY( )]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TO_DATE" class="java.util.Date">
+		<defaultValueExpression><![CDATA[TODAY( )]]></defaultValueExpression>
+	</parameter>
+	<queryString language="plsql">
+		<![CDATA[with balances as (select
+f1.rowid as id,
+sum(f1.total_ttc) as amount
+from
+llx_facture f1
+where
+f1.fk_facture_source is null
+and "type" = 0
+group by
+id
+union
+select
+f2.fk_facture_source as id,
+sum(f2.total_ttc) as amount
+from
+llx_facture f2
+where
+f2.fk_facture_source is not null
+group by
+id
+union
+select
+f3.fk_facture as id,
+sum(f3.amount)*-1 as amount
+from
+llx_paiement_facture f3
+group by
+id)
+select 
+f.ref as client_id,
+f.datef::DATE as invoice_date,
+f.total_ttc as price,
+s.nom,
+s.address,
+s.town,
+d.nom as group,
+coalesce(pr."label",fd.description) AS prod,
+max(p.datep::DATE) as finish_date,
+sum(b.amount) as balance
+from llx_paiement p
+join llx_paiement_facture pf on  pf.fk_paiement = p.rowid 
+join llx_facture f on f.rowid  = pf.fk_facture  
+join balances b on b.id = f.rowid 
+join  llx_societe s on s.rowid  = f.fk_soc  
+join llx_c_departements d on d.rowid  = s.fk_departement 
+join llx_facturedet as fd on f.rowid = fd.fk_facture
+join llx_product as pr on fd.fk_product = pr.rowid
+where f.paye = 1
+and f.fk_facture_source is null
+and f.rowid not in (select lf.fk_facture_source from llx_facture lf where lf.fk_facture_source notnull)
+and (s.fk_departement = $P{GROUP}) or ($P{GROUP} is null)
+group by 
+d.nom,
+s.town,
+s.address,
+f.ref,
+s.nom,
+pr.label,
+fd.description,
+f.datef,
+f.total_ttc
+having  max(p.datep)::DATE between $P{FROM_DATE} and $P{TO_DATE}
+order by
+d.nom]]>
+	</queryString>
+	<field name="client_id" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="client_id"/>
+		<property name="com.jaspersoft.studio.field.label" value="client_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="invoice_date" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="invoice_date"/>
+		<property name="com.jaspersoft.studio.field.label" value="invoice_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="price" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="price"/>
+		<property name="com.jaspersoft.studio.field.label" value="price"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_facture"/>
+	</field>
+	<field name="nom" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nom"/>
+		<property name="com.jaspersoft.studio.field.label" value="nom"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="address" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address"/>
+		<property name="com.jaspersoft.studio.field.label" value="address"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="town" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="town"/>
+		<property name="com.jaspersoft.studio.field.label" value="town"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_societe"/>
+	</field>
+	<field name="group" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="group"/>
+		<property name="com.jaspersoft.studio.field.label" value="group"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="llx_c_departements"/>
+	</field>
+	<field name="prod" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="prod"/>
+		<property name="com.jaspersoft.studio.field.label" value="prod"/>
+	</field>
+	<field name="finish_date" class="java.util.Date">
+		<property name="com.jaspersoft.studio.field.name" value="finish_date"/>
+		<property name="com.jaspersoft.studio.field.label" value="finish_date"/>
+	</field>
+	<field name="balance" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="balance"/>
+		<property name="com.jaspersoft.studio.field.label" value="balance"/>
+	</field>
+	<variable name="client_id1" class="java.lang.Integer" resetType="Column" calculation="Count">
+		<variableExpression><![CDATA[$F{client_id}]]></variableExpression>
+	</variable>
+	<variable name="client_id2" class="java.lang.Integer" resetType="Page" calculation="Count">
+		<variableExpression><![CDATA[$F{client_id}]]></variableExpression>
+	</variable>
+	<variable name="client_id3" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$F{client_id}]]></variableExpression>
+	</variable>
+	<group name="Group1" isReprintHeaderOnEachPage="true" keepTogether="true" preventOrphanFooter="true">
+		<groupExpression><![CDATA[$F{address}]]></groupExpression>
+		<groupFooter>
+			<band height="11"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="30" splitType="Stretch">
+			<textField>
+				<reportElement x="160" y="0" width="410" height="30" uuid="e54f0897-ec26-4f67-a23e-0baf5e7c13e5"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["FINISHED FOR: "+DATEFORMAT($P{FROM_DATE}, "yyyy-MM-dd" )+" TO "+DATEFORMAT($P{TO_DATE}, "yyyy-MM-dd" )]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="90" height="30" uuid="c97d14fd-b55f-4a36-b995-2c9e48ce422b">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="3381c51f-8e2a-4c80-b6a3-0578bb6ca55c"/>
+				</reportElement>
+				<text><![CDATA[Invoice No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="90" y="0" width="89" height="30" uuid="0c43c725-bc5d-45a6-8148-8442710dbe21">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1bfee38e-c83e-491b-b1d1-4d8e03031402"/>
+				</reportElement>
+				<text><![CDATA[invoice_date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="179" y="0" width="61" height="30" uuid="e7d19091-de5b-4cb9-8530-711f3ecf5e7d">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1266dc53-99fb-4533-b690-2342169b3ad3"/>
+				</reportElement>
+				<text><![CDATA[Price]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="240" y="0" width="160" height="30" uuid="9ccbcdae-f570-431e-8d03-a044924941d9">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f9cffdbc-96d5-43f0-84d4-92cea222c0b4"/>
+				</reportElement>
+				<text><![CDATA[Customer]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="403" y="0" width="89" height="30" uuid="51d210a5-9569-4513-ad68-71ea22ae501b">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="38f15d5a-56b6-4d82-b98a-f15228249800"/>
+				</reportElement>
+				<text><![CDATA[City]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="492" y="0" width="89" height="30" uuid="1467c970-feaf-4ed2-a6a4-353c9c98a95b">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1cdeaf57-0256-474b-90f8-c68b6b9a0cd0"/>
+				</reportElement>
+				<text><![CDATA[Group]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="581" y="0" width="89" height="30" uuid="4e2ec016-9c9c-4042-8170-3b2e051fcb76">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="8fe68668-8ff8-4aa9-a903-ad420d990cea"/>
+				</reportElement>
+				<text><![CDATA[Product]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="670" y="0" width="89" height="30" uuid="6de7d0b7-2948-4fad-aa58-add58866ece0">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="fdfa5d32-7d28-4642-9402-569af869084e"/>
+				</reportElement>
+				<text><![CDATA[Finish_Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="760" y="0" width="42" height="30" uuid="dadd1f7d-f160-4d33-bf1a-f8e5f0557c17">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="54b3f9d5-86a2-4bf7-97f6-3152a32640af"/>
+				</reportElement>
+				<text><![CDATA[Balance]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="90" height="15" uuid="a873ff2d-d42b-4254-9177-8ee2229c8ed1">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="3381c51f-8e2a-4c80-b6a3-0578bb6ca55c"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{client_id}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement x="90" y="0" width="89" height="15" uuid="6845fe46-0e53-4a60-a837-3e1501e0f452">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1bfee38e-c83e-491b-b1d1-4d8e03031402"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{invoice_date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="179" y="0" width="61" height="15" uuid="e28cc19b-954e-432c-80ae-c016ba7932b0">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1266dc53-99fb-4533-b690-2342169b3ad3"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{price}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="240" y="0" width="160" height="15" uuid="412ce422-4136-409d-9ba7-d5925d2e95af">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f9cffdbc-96d5-43f0-84d4-92cea222c0b4"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{nom}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="403" y="0" width="89" height="15" uuid="9f94112e-aa80-441f-be22-606add7a5001">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="38f15d5a-56b6-4d82-b98a-f15228249800"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{town}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="492" y="0" width="89" height="15" uuid="ab4e0ecf-77be-4c68-86c6-963b7e5490e6">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1cdeaf57-0256-474b-90f8-c68b6b9a0cd0"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{group}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="581" y="0" width="89" height="15" uuid="1063c792-41a8-4a14-bdcb-db59b1ccc2a5">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="8fe68668-8ff8-4aa9-a903-ad420d990cea"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{prod}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement x="670" y="0" width="89" height="15" uuid="6ea8d86a-e481-454c-80f9-fb25ba031724">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="fdfa5d32-7d28-4642-9402-569af869084e"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{finish_date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="760" y="0" width="42" height="15" uuid="7e1f3053-588c-4604-b807-4f49b592d00c">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="54b3f9d5-86a2-4bf7-97f6-3152a32640af"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{balance}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="30" splitType="Stretch">
+			<textField>
+				<reportElement x="260" y="0" width="235" height="30" uuid="3c415bf7-be33-4f7c-b3fc-51315242563d"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["TOTAL FOR REPORT: " + $V{client_id3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>
