@@ -4,25 +4,13 @@
 
 Description of the module...
 
-<!--
-![Screenshot reports](img/screenshot_reports.png?raw=true "Reports"){imgmd}
--->
 
-Other external modules are available on [Dolistore.com](https://www.dolistore.com).
+## Related projects
+[phpjasper](https://www.dolibarr.org).
 
-## Translations
+[Jaspersoft Studio](https://www.jaspersoft.com/products/jaspersoft-community)  
 
-Translations can be completed manually by editing files into directories *langs*.
 
-<!--
-This module contains also a sample configuration for Transifex, under the hidden directory [.tx](.tx), so it is possible to manage translation using this service.
-
-For more informations, see the [translator's documentation](https://wiki.dolibarr.org/index.php/Translator_documentation).
-
-There is a [Transifex project](https://transifex.com/projects/p/dolibarr-module-template) for this module.
--->
-
-<!--
 
 ## Installation
 
