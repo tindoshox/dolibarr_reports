@@ -16,7 +16,7 @@ Description of the module...
 
 ### From the ZIP file and GUI interface
 
-- If you get the module in a zip file (like when downloading it from the market place [Dolistore](https://www.dolistore.com)), go into
+- If you get the module in a zip file  go into
 menu ```Home - Setup - Modules - Deploy external module``` and upload the zip file.
 
 Note: If this screen tell you there is no custom directory, check your setup is correct:
