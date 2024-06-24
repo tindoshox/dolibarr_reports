@@ -93,7 +93,7 @@ $max = 5;
 $now = dol_now();
 
 
-$passkey = $db->database_name;
+ = $db->database_name;
 $reportid = $_GET['reportid'];
 $selected_salesperson = GETPOST('userid');
 $selected_group = GETPOST('state_id');
@@ -182,7 +182,7 @@ if ($reportid === 'receipts') {
 			$error++;
 		} else {
 
-			ReportGen::get_report($params, $reportid, $passkey);
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -221,7 +221,7 @@ elseif ($reportid === 'Stock_Balance') {
 			$error++;
 		} else {
 
-			ReportGen::get_report($params, $reportid, $passkey);
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -249,7 +249,7 @@ elseif ($reportid === 'balances') {
 			setEventMessages($langs->transnoentities('ErrorFieldRequired', $langs->transnoentities('Group')), null, 'errors');
 			$error++;
 		} else {
-			ReportGen::get_report($params, $reportid, $passkey);
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -278,7 +278,7 @@ elseif ($reportid === 'OpenInvoices') {
 	if (isset($_POST['submit'])) {
 
 
-		ReportGen::get_report($params, $reportid, $passkey);
+		ReportGen::get_report($params, $reportid, );
 	}
 }
 
@@ -307,7 +307,7 @@ elseif ($reportid === 'shop_papers') {
 			$error++;
 		} else {
 
-			ReportGen::get_report($params, $reportid, $passkey, );
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -353,7 +353,7 @@ elseif ($reportid === 'receipt_book_check') {
 			$error++;
 		} else {
 
-			ReportGen::get_report($params, $reportid, $passkey);
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -398,7 +398,7 @@ elseif ($reportid === 'Overdue') { //From Date
 			$error++;
 		} else
 
-		{ReportGen::get_report($params, $reportid, $passkey);}
+		{ReportGen::get_report($params, $reportid, );}
 	}
 }
 
@@ -428,7 +428,7 @@ elseif ($reportid === 'Percentage_Collection') {
 	print '</td>';
 	if (isset($_POST['submit'])) {
 
-		ReportGen::get_report($params, $reportid, $passkey);
+		ReportGen::get_report($params, $reportid, );
 	}
 }
 
@@ -472,7 +472,7 @@ elseif ($reportid === 'Credit_Notes_Returns') { //From Date
 			$error++;
 		}
 
-		ReportGen::get_report($params, $reportid, $passkey);
+		ReportGen::get_report($params, $reportid, );
 	}
 }
 
@@ -510,7 +510,7 @@ elseif ($reportid === 'Finished_Group') {
 			setEventMessages($langs->transnoentities('ErrorFieldRequired', $langs->transnoentities('Start date cannot be greater than end date')), null, 'errors');
 			$error++;
 		} else {
-			ReportGen::get_report($params, $reportid, $passkey);
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -540,7 +540,7 @@ elseif ($reportid === 'Monthly_Collection_Totals') { //From Date
 			$error++;
 		}
 
-		ReportGen::get_report($params, $reportid, $passkey);
+		ReportGen::get_report($params, $reportid, );
 	}
 }
 
@@ -592,7 +592,7 @@ elseif ($reportid === 'Sales_Invoices') {
 			$error++;
 		} else {
 
-			ReportGen::get_report($params, $reportid, $passkey);
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -645,7 +645,7 @@ elseif ($reportid === 'receipts_mobile') {
 			$error++;
 		} else {
 
-			ReportGen::get_report($params, $reportid, $passkey);
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -690,7 +690,7 @@ elseif ($reportid === 'Open_Check_Points') { //From Date
 			setEventMessages($langs->transnoentities('ErrorFieldRequired', $langs->transnoentities('Group')), null, 'errors');
 			$error++;
 		} else {
-			ReportGen::get_report($params, $reportid, $passkey);
+			ReportGen::get_report($params, $reportid, );
 		}
 	}
 }
@@ -736,7 +736,7 @@ elseif ($reportid === 'cashflow_daily_totals') {
 				setEventMessages($langs->transnoentities('ErrorFieldRequired', $langs->transnoentities('Period')), null, 'errors');
 				$error++;
 			} else {
-				ReportGen::get_report($params, $reportid, $passkey);
+				ReportGen::get_report($params, $reportid, );
 			}
 		}
 	}

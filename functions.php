@@ -45,7 +45,7 @@ function select_salesperson($selected_salesperson, $formother, $user)
 }
 
 // Submit Button
-function submit_button($params, $reportid, $passkey, $format, $validation)
+function submit_button($params, $reportid, $format, $validation)
 {
 	//Submit Button
 	print '<tr><td>';
@@ -55,7 +55,7 @@ function submit_button($params, $reportid, $passkey, $format, $validation)
 		if($validation == false){
 			//error message
 		}
-		ReportGen::get_report($params, $reportid, $passkey, $format);
+		ReportGen::get_report($params, $reportid, $format);
 	}
 	
 

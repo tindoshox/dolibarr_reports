@@ -7,7 +7,7 @@ use PHPJasper\PHPJasper;
 
 Class ReportGen {
 
-static public function get_report($params, $reportid, $passkey, $format=['pdf'])
+static public function get_report($params, $reportid, $format=['pdf'])
 {
 	global $dolibarr_main_db_name, $dolibarr_main_db_host, $dolibarr_main_db_user, $dolibarr_main_db_port, $dolibarr_main_db_pass, $dolibarr_main_db_type;
 

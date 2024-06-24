@@ -81,7 +81,7 @@ class Reports extends DolibarrApi
 	public function builddoc($reportid, $groupid = 0, $salesperson = 0, $fromdate = '', $todate = '')
 	{
 		global $conf, $langs;
-		$passkey = $this->db->database_name;
+		 = $this->db->database_name;
 		$modulepart = 'reports';
 
 		$original_file = "$reportid/$reportid.pdf";
@@ -127,7 +127,7 @@ class Reports extends DolibarrApi
 			$params['GROUP'] = $groupid;
 		}
 
-		$result = ReportGen::get_report($params, $reportid, $passkey);
+		$result = ReportGen::get_report($params, $reportid, );
 		if ($result <= 0) {
 			throw new RestException(500, $params);
 		}
