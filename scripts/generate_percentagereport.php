@@ -6,7 +6,7 @@ require_once __DIR__ . '/../class/pdf_percentagereport.class.php';
 require_once __DIR__ . '/../lib/functions.php';
 
 
-function generatePercentageReport($db,$startperiod, $reportId): ?string
+function generatePercentageReport($db,$startperiod, $reportId): ?array
 {
 	global $conf, $langs;
 	$data = fetchPercentageData($db, $startperiod);

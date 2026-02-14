@@ -6,7 +6,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 require_once __DIR__ . '/../class/pdf_monthlytotals.class.php';
 require_once __DIR__ . '/../lib/functions.php';
 
-function generateMonthlyTotalsReport($db, $startperiod, $endperiod,$reportId): ?string
+function generateMonthlyTotalsReport($db, $startperiod, $endperiod,$reportId): ?array
 {
 	// Fetch Data
 
